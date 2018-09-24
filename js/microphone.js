@@ -89,11 +89,15 @@ const recordAudio = () => {
           });
         };
 
+        const getBlob = () => {
+          return audioBlob;
+        };
+
         const getUrl = () => {
           return audioUrl;
         };
 
-        resolve({ start, stop, getUrl });
+        resolve({ start, stop, getUrl, getBlob });
       });
   });
 };
@@ -103,7 +107,6 @@ const recordAudio = () => {
   var player = document.getElementById('player');
   player.disabled = true;
   const recorder = await recordAudio();
-  console.log('Trying to call foo...');
   recorder.start();
 
   setTimeout(async () => {
