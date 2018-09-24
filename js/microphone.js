@@ -61,6 +61,8 @@ const recordAudio = () => {
       .then(stream => {
         const mediaRecorder = new MediaRecorder(stream);
         const audioChunks = [];
+        var audioBlob = undefined;
+        var audioUrl = '';
 
         mediaRecorder.addEventListener("dataavailable", event => {
           audioChunks.push(event.data);
@@ -73,8 +75,8 @@ const recordAudio = () => {
         const stop = () => {
           return new Promise(resolve => {
             mediaRecorder.addEventListener("stop", () => {
-              const audioBlob = new Blob(audioChunks);
-              const audioUrl = URL.createObjectURL(audioBlob);
+              audioBlob = new Blob(audioChunks);
+              audioUrl = URL.createObjectURL(audioBlob);
               const audio = new Audio(audioUrl);
               const play = () => {
                 audio.play();
@@ -87,7 +89,11 @@ const recordAudio = () => {
           });
         };
 
-        resolve({ start, stop });
+        const getUrl = () => {
+          return audioUrl;
+        };
+
+        resolve({ start, stop, getUrl });
       });
   });
 };
@@ -97,13 +103,35 @@ const recordAudio = () => {
   var player = document.getElementById('player');
   player.disabled = true;
   const recorder = await recordAudio();
+  console.log('Trying to call foo...');
   recorder.start();
 
   setTimeout(async () => {
     const audio = await recorder.stop();
     // var player = document.getElementById('player');
+    const audioUrl = recorder.getUrl();
+    createAudioElement(audioUrl);
     player.disabled = false;
     player.addEventListener("click", () => audio.play());
     // audio.play();
   }, 3000);
 })();
+
+function createAudioElement(blobUrl) {
+  const downloadEl = document.createElement('a');
+  downloadEl.style = 'display: block';
+  downloadEl.innerHTML = 'download';
+  downloadEl.download = 'audio.webm';
+  downloadEl.href = blobUrl;
+
+  const audioEl = document.createElement('audio');
+  audioEl.controls = true;
+
+  const sourceEl = document.createElement('source');
+  sourceEl.src = blobUrl;
+  sourceEl.type = 'audio/webm';
+
+  audioEl.appendChild(sourceEl);
+  document.body.appendChild(audioEl);
+  document.body.appendChild(downloadEl);
+}
